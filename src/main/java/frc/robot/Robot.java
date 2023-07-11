@@ -4,6 +4,9 @@
 
 package frc.robot;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+
 import org.littletonrobotics.junction.LogFileUtil;
 import org.littletonrobotics.junction.LoggedRobot;
 import org.littletonrobotics.junction.Logger;
@@ -13,6 +16,7 @@ import org.littletonrobotics.junction.wpilog.WPILOGReader;
 import org.littletonrobotics.junction.wpilog.WPILOGWriter;
 
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 /**
@@ -29,6 +33,10 @@ public class Robot extends LoggedRobot {
   private final LoggedDashboardChooser<String> chooser = new LoggedDashboardChooser<>("Auto Choices");
 
   private Pose2d robotPosition = new Pose2d();
+  private ArrayList<Pose2d> path = new ArrayList<>(Arrays.asList(
+    new Pose2d(1, 0, new Rotation2d()),
+    new Pose2d(0, 1, new Rotation2d())
+  ));
 
   /**
    * This function is run when the robot is first started up and should be used
@@ -81,6 +89,11 @@ public class Robot extends LoggedRobot {
   /** This function is called periodically during all modes. */
   @Override
   public void robotPeriodic() {
+    Logger.getInstance().recordOutput("Robot Position", robotPosition);
+
+    for (int i = 0; i < path.size(); i++) {
+      Logger.getInstance().recordOutput("Path Node " + i, path.get(i));
+    }
   }
 
   /** This function is called once when autonomous is enabled. */
@@ -113,8 +126,6 @@ public class Robot extends LoggedRobot {
   @Override
   public void teleopPeriodic() {
     robotPosition = new Pose2d(robotPosition.getX() + 0.01, robotPosition.getY(), robotPosition.getRotation());
-    SmartDashboard.putNumber("Robot X", robotPosition.getX());
-    Logger.getInstance().recordOutput("Robot Position", robotPosition);
   }
 
   /** This function is called once when the robot is disabled. */
