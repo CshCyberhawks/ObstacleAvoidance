@@ -6,6 +6,7 @@ package frc.robot;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 import org.littletonrobotics.junction.LogFileUtil;
 import org.littletonrobotics.junction.LoggedRobot;
@@ -15,8 +16,16 @@ import org.littletonrobotics.junction.networktables.NT4Publisher;
 import org.littletonrobotics.junction.wpilog.WPILOGReader;
 import org.littletonrobotics.junction.wpilog.WPILOGWriter;
 
+import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Transform2d;
+import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.math.kinematics.DifferentialDriveKinematics;
+import edu.wpi.first.math.trajectory.Trajectory;
+import edu.wpi.first.math.trajectory.TrajectoryConfig;
+import edu.wpi.first.math.trajectory.TrajectoryGenerator;
+import edu.wpi.first.math.trajectory.constraint.DifferentialDriveVoltageConstraint;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 /**
@@ -156,5 +165,18 @@ public class Robot extends LoggedRobot {
   /** This function is called periodically whilst in simulation. */
   @Override
   public void simulationPeriodic() {
+  }
+
+
+
+ /** Takes the initial and last poses of the robot in addition to the list of locations the robot will be going on and returns a trajectory of the path*/ 
+  private static Trajectory generatePoseTrajectory(ArrayList<Translation2d> poseArray, Pose2d robotInitialPose, Pose2d robotLastPose){
+    //TODO edit the constants
+    DifferentialDriveKinematics kDriveKinematics = new DifferentialDriveKinematics(0.58);
+    var autoVoltageConstraint  = new DifferentialDriveVoltageConstraint(
+    new SimpleMotorFeedforward(84271, 3.1946, 0.64), kDriveKinematics, 10);
+    TrajectoryConfig config = new TrajectoryConfig(0.8, 6.0).setKinematics(kDriveKinematics).addConstraint(autoVoltageConstraint);
+    Trajectory trajectory = TrajectoryGenerator.generateTrajectory(robotInitialPose, poseArray, robotLastPose, config);
+    return trajectory;
   }
 }
