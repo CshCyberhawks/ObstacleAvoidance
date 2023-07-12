@@ -27,7 +27,9 @@ public class RobotContainer {
   private final Drivetrain m_robotDrive = new Drivetrain();
   private final CartesianRamseteClass m_ramsete = new CartesianRamseteClass(m_robotDrive);
   //TODO change the initial and last pose of the path
-  private final pathGenerator m_pathGenerator = new pathGenerator(new Pose2d(0, 0, new Rotation2d()), new Pose2d(10, 0, new Rotation2d()));
+  private final Pose2d initialPose = FieldConstants.allianceFlip(new Pose2d(0, 0, new Rotation2d()));
+  private final Pose2d lastPose = FieldConstants.allianceFlip(new Pose2d(10, 0, new Rotation2d()));
+  private final pathGenerator m_pathGenerator = new pathGenerator(initialPose, lastPose);
 
 
   private static boolean isTank = true;
@@ -77,7 +79,7 @@ public class RobotContainer {
    * @return the command to run in autonomous
    */
   public Command getAutonomousCommand() {
-    //m_robotDrive.resetOdometry(FieldConstants.allianceFlip(new Pose2d(1.638, 2.725, new Rotation2d())));
+    m_robotDrive.resetOdometry(initialPose);
     return m_ramsete.getCartesianRamseteCommand(m_pathGenerator.getTrajectory());
   }
 
