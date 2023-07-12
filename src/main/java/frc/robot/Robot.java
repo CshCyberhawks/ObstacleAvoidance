@@ -40,6 +40,7 @@ public class Robot extends LoggedRobot {
   private static final String customAuto = "My Auto";
   private String autoSelected;
   private final LoggedDashboardChooser<String> chooser = new LoggedDashboardChooser<>("Auto Choices");
+  private static final DifferentialDriveKinematics kDriveKinematics = new DifferentialDriveKinematics(0.58);
 
   private Pose2d robotPosition = new Pose2d();
   private ArrayList<Pose2d> path = new ArrayList<>(Arrays.asList(
@@ -172,7 +173,6 @@ public class Robot extends LoggedRobot {
  /** Takes the initial and last poses of the robot in addition to the list of locations the robot will be going on and returns a trajectory of the path*/ 
   private static Trajectory generatePoseTrajectory(ArrayList<Translation2d> poseArray, Pose2d robotInitialPose, Pose2d robotLastPose){
     //TODO edit the constants
-    DifferentialDriveKinematics kDriveKinematics = new DifferentialDriveKinematics(0.58);
     var autoVoltageConstraint  = new DifferentialDriveVoltageConstraint(
     new SimpleMotorFeedforward(84271, 3.1946, 0.64), kDriveKinematics, 10);
     TrajectoryConfig config = new TrajectoryConfig(0.8, 6.0).setKinematics(kDriveKinematics).addConstraint(autoVoltageConstraint);
