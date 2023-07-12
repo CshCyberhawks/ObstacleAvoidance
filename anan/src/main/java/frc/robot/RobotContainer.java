@@ -77,7 +77,7 @@ public class RobotContainer {
    * @return the command to run in autonomous
    */
   public Command getAutonomousCommand() {
-    m_robotDrive.resetOdometry(FieldConstants.allianceFlip(new Pose2d(1.638, 2.725, new Rotation2d())));
+    //m_robotDrive.resetOdometry(FieldConstants.allianceFlip(new Pose2d(1.638, 2.725, new Rotation2d())));
     return m_ramsete.getCartesianRamseteCommand(m_pathGenerator.getTrajectory());
   }
 
