@@ -4,6 +4,8 @@
 
 package frc.robot.subsystems;
 
+import org.littletonrobotics.junction.Logger;
+
 import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -121,6 +123,10 @@ public class Drivetrain extends SubsystemBase {
         m_leftEncoder.getDistance(),
         m_rightEncoder.getDistance());
     m_fieldSim.setRobotPose(getPose());
+
+    Logger.getInstance().recordOutput("Robot Position", getPose());
+    SmartDashboard.putNumber("Robot X", getPose().getX());
+    SmartDashboard.putNumber("Robot y", getPose().getY());
   }
 
   @Override

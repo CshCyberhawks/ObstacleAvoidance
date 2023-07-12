@@ -4,8 +4,11 @@
 
 package frc.robot;
 
+import org.littletonrobotics.junction.Logger;
+
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.trajectory.Trajectory;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.XboxController;
 import frc.robot.autonomous.CartesianRamseteClass;
@@ -27,7 +30,7 @@ public class RobotContainer {
   private final Drivetrain m_robotDrive = new Drivetrain();
   private final CartesianRamseteClass m_ramsete = new CartesianRamseteClass(m_robotDrive);
   //TODO change the initial and last pose of the path
-  private final pathGenerator m_pathGenerator = new pathGenerator(new Pose2d(0, 0, new Rotation2d()), new Pose2d(10, 0, new Rotation2d()));
+  private final pathGenerator m_pathGenerator = new pathGenerator(new Pose2d(6, 3, new Rotation2d()), new Pose2d(2, 2.725, new Rotation2d()));
 
 
   private static boolean isTank = true;
@@ -41,7 +44,7 @@ public class RobotContainer {
   public RobotContainer() {
     // Configure the button bindings
     configureButtonBindings();
-    m_robotDrive.resetOdometry(FieldConstants.allianceFlip(new Pose2d(1.638, 2.725, new Rotation2d())));
+    m_robotDrive.resetOdometry(FieldConstants.allianceFlip(new Pose2d(6, 3, new Rotation2d())));
 
     m_robotDrive.setDefaultCommand(
         new RunCommand(() -> m_robotDrive.tankOrArcadeDrive(m_rightStick.getY()/getDriveSpeed(), -m_rightStick.getX()/getDriveSpeed(), m_leftStick.getY()/getDriveSpeed(), m_rightStick.getY()/getDriveSpeed(), isTank, reverser), m_robotDrive));
@@ -78,7 +81,9 @@ public class RobotContainer {
    */
   public Command getAutonomousCommand() {
     //m_robotDrive.resetOdometry(FieldConstants.allianceFlip(new Pose2d(1.638, 2.725, new Rotation2d())));
-    return m_ramsete.getCartesianRamseteCommand(m_pathGenerator.getTrajectory());
+    Trajectory trajectory = m_pathGenerator.getTrajectory();
+    Logger.getInstance().recordOutput("Trajectory", trajectory);
+    return m_ramsete.getCartesianRamseteCommand(trajectory);
   }
 
   private double getDriveSpeed(){
