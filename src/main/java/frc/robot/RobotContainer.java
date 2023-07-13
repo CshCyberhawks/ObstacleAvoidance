@@ -30,7 +30,7 @@ public class RobotContainer {
     private final Drivetrain m_robotDrive = new Drivetrain();
     private final CartesianRamseteClass m_ramsete = new CartesianRamseteClass(m_robotDrive);
     //TODO change the initial and last pose of the path
-    private final PathGenerator m_pathGenerator = new PathGenerator(new Pose2d(6, 1, new Rotation2d()), new Pose2d(2.5, 3, new Rotation2d(Math.PI)));
+    private final PathGenerator m_pathGenerator = new PathGenerator(new Pose2d(10, 3, new Rotation2d()), new Pose2d(2.5, 3, new Rotation2d(Math.PI)));
 
 
     private static boolean isTank = true;
@@ -46,7 +46,7 @@ public class RobotContainer {
     public RobotContainer() {
         // Configure the button bindings
         configureButtonBindings();
-        m_robotDrive.resetOdometry(FieldConstants.allianceFlip(new Pose2d(6, 1, new Rotation2d())));
+        m_robotDrive.resetOdometry(FieldConstants.allianceFlip(new Pose2d(10, 3, new Rotation2d())));
 
         m_robotDrive.setDefaultCommand(
                 new RunCommand(() -> m_robotDrive.tankOrArcadeDrive(m_rightStick.getY() / getDriveSpeed(), -m_rightStick.getX() / getDriveSpeed(), m_leftStick.getY() / getDriveSpeed(), m_rightStick.getY() / getDriveSpeed(), isTank, reverser), m_robotDrive));

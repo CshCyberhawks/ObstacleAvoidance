@@ -32,7 +32,7 @@ public class PathGenerator {
     private final Pose2d lastPose;
     private final ArrayList<Translation2d> calculatedLocs;
 
-    private final double step = .5;
+    private final double step = 1;
 
     public PathGenerator(Pose2d initialPose, Pose2d lastPose) {
         this.initialPose = FieldConstants.allianceFlip(initialPose);
@@ -126,7 +126,7 @@ public class PathGenerator {
                 if (!visited.contains(child.position)) {
                     visited.add(child.position);
                     child.parent = currentNode;
-                    frontier.add(child, Math.abs(child.position.getDistance(finalPosition)));
+                    frontier.add(child, Math.abs(child.position.getDistance(finalPosition)) + Math.abs(child.position.getDistance(initialPosition)));
                 }
             }
         }
