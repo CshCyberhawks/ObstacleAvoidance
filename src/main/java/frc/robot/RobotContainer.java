@@ -30,7 +30,7 @@ public class RobotContainer {
     private final Drivetrain m_robotDrive = new Drivetrain();
     private final CartesianRamseteClass m_ramsete = new CartesianRamseteClass(m_robotDrive);
     //TODO change the initial and last pose of the path
-    private final PathGenerator m_pathGenerator = new PathGenerator(new Pose2d(10, 3, new Rotation2d()), new Pose2d(2.5, 3, new Rotation2d(Math.PI)));
+    private final PathGenerator m_pathGenerator = new PathGenerator(new Pose2d(10, 3, new Rotation2d()), new Pose2d(2.5, 3, new Rotation2d()));
 
 
     private static boolean isTank = true;
