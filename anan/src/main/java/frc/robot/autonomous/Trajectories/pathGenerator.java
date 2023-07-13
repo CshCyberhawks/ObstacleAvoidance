@@ -28,7 +28,7 @@ public class pathGenerator {
     private Pose2d lastPose;
     private ArrayList<Translation2d> calculatedLocs;
 
-    private final double step = .25;
+    private final double step = .5;
 
     public pathGenerator(Pose2d initialPose, Pose2d lastPose){
         this.initialPose = FieldConstants.allianceFlip(initialPose);
@@ -51,15 +51,15 @@ public class pathGenerator {
         //     System.out.println(String.format("%d: %d, %d", i, path.get(i).getX(), path.get(i).getY()));
         // }
 
-        double yValue = 4.5;
-        if (Math.abs(initialPose.getY() - 4.5) > Math.abs(initialPose.getY() - .75)) {
+        double yValue = 4.25;
+        if (Math.abs(initialPose.getY() - 4.25) > Math.abs(initialPose.getY() - .75)) {
             yValue = .75;
         }
         if (initialPose.getX() >= 5 && lastPose.getX() <= 3) {
             calculatedLocs.add(FieldConstants.allianceFlip(new Translation2d(5.5, yValue)));
-            calculatedLocs.add(FieldConstants.allianceFlip(new Translation2d(2, yValue)));
+            calculatedLocs.add(FieldConstants.allianceFlip(new Translation2d(2.5, yValue)));
         } else if (initialPose.getX() <= 3 && lastPose.getX() >= 5) {
-            calculatedLocs.add(FieldConstants.allianceFlip(new Translation2d(2, yValue)));
+            calculatedLocs.add(FieldConstants.allianceFlip(new Translation2d(2.5, yValue)));
             calculatedLocs.add(FieldConstants.allianceFlip(new Translation2d(5.5, yValue)));
         }
     }
