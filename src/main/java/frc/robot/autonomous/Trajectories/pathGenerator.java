@@ -30,41 +30,10 @@ public class PathGenerator {
     private final Pose2d lastPose;
     private final ArrayList<Translation2d> calculatedLocs;
 
-    private final double step = 1;
-
     public PathGenerator(Pose2d initialPose, Pose2d lastPose) {
         this.initialPose = FieldConstants.allianceFlip(initialPose);
         this.lastPose = FieldConstants.allianceFlip(lastPose);
-        // this.calculatedLocs = buildPath(astar(new Translation2d(this.initialPose.getX(), this.initialPose.getY()), new Translation2d(this.lastPose.getX(), this.lastPose.getY())));
-        Node finalNode = astar(new Translation2d(this.initialPose.getX(), this.initialPose.getY()), new Translation2d(this.lastPose.getX(), this.lastPose.getY()));
-        assert finalNode != null;
-        SmartDashboard.putNumber("Final Pos X", finalNode.position.getX());
-        SmartDashboard.putNumber("Final Pos Y", finalNode.position.getY());
-
-        this.calculatedLocs = buildPath(finalNode);
-        Collections.reverse(this.calculatedLocs);
-
-        for (Translation2d pos : this.calculatedLocs) {
-            System.out.println(pos.getX() + ", " + pos.getY());
-        }
-        System.out.println(this.calculatedLocs.size());
-        //        this.calculatedLocs = new ArrayList<>();
-
-        // for (int i = 0; i < path.size(); i++) {
-        //     System.out.println(String.format("%d: %d, %d", i, path.get(i).getX(), path.get(i).getY()));
-        // }
-
-        //        double yValue = 4.25;
-        //        if (Math.abs(initialPose.getY() - 4.25) > Math.abs(initialPose.getY() - .75)) {
-        //            yValue = .75;
-        //        }
-        //        if (initialPose.getX() >= 5 && lastPose.getX() <= 3) {
-        //            calculatedLocs.add(FieldConstants.allianceFlip(new Translation2d(5.5, yValue)));
-        //            calculatedLocs.add(FieldConstants.allianceFlip(new Translation2d(2.5, yValue)));
-        //        } else if (initialPose.getX() <= 3 && lastPose.getX() >= 5) {
-        //            calculatedLocs.add(FieldConstants.allianceFlip(new Translation2d(2.5, yValue)));
-        //            calculatedLocs.add(FieldConstants.allianceFlip(new Translation2d(5.5, yValue)));
-        //        }
+        this.calculatedLocs = buildPath(astar(new Translation2d(this.initialPose.getX(), this.initialPose.getY()), new Translation2d(this.lastPose.getX(), this.lastPose.getY())));
     }
 
     private static class Node {
@@ -98,7 +67,7 @@ public class PathGenerator {
         for (int x = -1; x < 2; x++) {
             for (int y = -1; y < 2; y++) {
                 if (x == 0 && y == 0) continue;
-                Translation2d pos = new Translation2d(node.position.getX() + x * step, node.position.getY() + y * step);
+                Translation2d pos = new Translation2d(node.position.getX() + x, node.position.getY() + y);
                 if (!inObstacle(pos)) {
                     Node element = new Node(pos, finalPosition);
                     neighbors.add(element);
@@ -137,11 +106,20 @@ public class PathGenerator {
 
         Node currentNode = finalNode;
         while (currentNode.parent != null) {
-            path.add(currentNode.position);
+            path.add(0, currentNode.position);
             currentNode = currentNode.parent;
         }
 
         return path;
+    }
+
+    public final Translation2d[] getPointList() {
+        ArrayList<Translation2d> points = (ArrayList<Translation2d>) calculatedLocs.clone();
+        points.add(0, initialPose.getTranslation());
+        points.add(lastPose.getTranslation());
+
+
+        return (Translation2d[]) points.toArray();
     }
 
 
