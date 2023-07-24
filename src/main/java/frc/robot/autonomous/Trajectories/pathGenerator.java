@@ -5,7 +5,6 @@
 package frc.robot.autonomous.Trajectories;
 
 import java.util.ArrayList;
-import java.util.Collections;
 
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.geometry.Pose2d;
@@ -14,7 +13,6 @@ import edu.wpi.first.math.trajectory.Trajectory;
 import edu.wpi.first.math.trajectory.TrajectoryConfig;
 import edu.wpi.first.math.trajectory.TrajectoryGenerator;
 import edu.wpi.first.math.trajectory.constraint.DifferentialDriveVoltageConstraint;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.robot.FieldConstants;
 import frc.robot.Constants.DriveConstants;
 import frc.robot.Constants.TeleopConstants;
@@ -28,12 +26,17 @@ import frc.robot.util.PriorityQueue;
 public class PathGenerator {
     private final Pose2d initialPose;
     private final Pose2d lastPose;
-    private final ArrayList<Translation2d> calculatedLocs;
+    private ArrayList<Translation2d> calculatedLocs;
 
     public PathGenerator(Pose2d initialPose, Pose2d lastPose) {
         this.initialPose = FieldConstants.allianceFlip(initialPose);
         this.lastPose = FieldConstants.allianceFlip(lastPose);
         this.calculatedLocs = buildPath(astar(new Translation2d(this.initialPose.getX(), this.initialPose.getY()), new Translation2d(this.lastPose.getX(), this.lastPose.getY())));
+        prunePath();
+
+        for (Translation2d v : this.calculatedLocs) {
+            System.out.println(v.getX() + ", " + v.getY());
+        }
     }
 
     private static class Node {
@@ -111,6 +114,28 @@ public class PathGenerator {
         }
 
         return path;
+    }
+
+    private double getSlope(Translation2d first, Translation2d second) {
+        return (first.getY() - second.getY()) / (first.getX() - second.getX());
+    }
+
+    private void prunePath() {
+        if (calculatedLocs.size() < 2) {
+            return;
+        }
+        ArrayList<Translation2d> newPath = new ArrayList<>();
+        double lastSlope = getSlope(initialPose.getTranslation(), calculatedLocs.get(1));
+
+        for (int i = 0; i < calculatedLocs.size() - 1; i++) {
+            double currentSlope = getSlope(calculatedLocs.get(i), calculatedLocs.get(i + 1));
+            if (currentSlope != lastSlope) {
+                newPath.add(calculatedLocs.get(i));
+            }
+            lastSlope = currentSlope;
+        }
+
+        calculatedLocs = newPath;
     }
 
     public final Translation2d[] getPointList() {
