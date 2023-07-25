@@ -24,27 +24,31 @@ import frc.robot.util.PriorityQueue;
  * Add your docs here.
  */
 public class PathGenerator {
-    private final Pose2d initialPose;
-    private final Pose2d lastPose;
-    private ArrayList<Translation2d> calculatedLocs;
+    private final Pose2d initialPosition;
+    private final Pose2d finalPosition;
+    private ArrayList<Translation2d> controlPoints;
 
     public PathGenerator(Pose2d initialPose, Pose2d lastPose) {
-        this.initialPose = FieldConstants.allianceFlip(initialPose);
-        this.lastPose = FieldConstants.allianceFlip(lastPose);
-        this.calculatedLocs = buildPath(astar(new Translation2d(this.initialPose.getX(), this.initialPose.getY()), new Translation2d(this.lastPose.getX(), this.lastPose.getY())));
+        long start = System.currentTimeMillis();
+        this.initialPosition = FieldConstants.allianceFlip(initialPose);
+        this.finalPosition = FieldConstants.allianceFlip(lastPose);
+        this.controlPoints = buildPath(astar(new Translation2d(this.initialPosition.getX(), this.initialPosition.getY()), new Translation2d(this.finalPosition.getX(), this.finalPosition.getY())));
+        removeDuplicateSlopes();
         prunePath();
 
-        for (Translation2d v : this.calculatedLocs) {
+        System.out.println(System.currentTimeMillis() - start);
+
+        for (Translation2d v : this.controlPoints) {
             System.out.println(v.getX() + ", " + v.getY());
         }
     }
 
-    private static class Node {
+    private static class PathNode {
         Translation2d position;
         Translation2d finalPosition;
-        Node parent;
+        PathNode parent;
 
-        public Node(Translation2d position, Translation2d finalPosition) {
+        public PathNode(Translation2d position, Translation2d finalPosition) {
             this.position = position;
             this.finalPosition = finalPosition;
         }
@@ -64,15 +68,29 @@ public class PathGenerator {
         return false;
     }
 
-    private ArrayList<Node> getNeighbors(Node node, Translation2d finalPosition) {
-        ArrayList<Node> neighbors = new ArrayList<>();
+    private boolean objectBetween(Translation2d initialPos, Translation2d finalPos) {
+        final int steps = 25;
+        Translation2d step = new Translation2d((finalPos.getX() - initialPos.getX()) / steps, (finalPos.getY() - initialPos.getY()) / steps);
 
-        for (int x = -1; x < 2; x++) {
-            for (int y = -1; y < 2; y++) {
-                if (x == 0 && y == 0) continue;
+        for (int i = 0; i <= steps; i++) {
+            if (inObstacle(initialPos)) {
+                return true;
+            }
+            initialPos = initialPos.plus(step);
+        }
+
+        return false;
+    }
+
+    private ArrayList<PathNode> getNeighbors(PathNode node, Translation2d finalPosition) {
+        ArrayList<PathNode> neighbors = new ArrayList<>();
+
+        for (int x = -1; x <= 1; x++) {
+            for (int y = -1; y <= 1; y++) {
+                if (x == y) continue;
                 Translation2d pos = new Translation2d(node.position.getX() + x, node.position.getY() + y);
                 if (!inObstacle(pos)) {
-                    Node element = new Node(pos, finalPosition);
+                    PathNode element = new PathNode(pos, finalPosition);
                     neighbors.add(element);
                 }
             }
@@ -81,18 +99,18 @@ public class PathGenerator {
         return neighbors;
     }
 
-    private Node astar(Translation2d initialPosition, Translation2d finalPosition) {
-        PriorityQueue<Node> frontier = new PriorityQueue<>();
-        frontier.add(new Node(initialPosition, finalPosition), 0);
+    private PathNode astar(Translation2d initialPosition, Translation2d finalPosition) {
+        PriorityQueue<PathNode> frontier = new PriorityQueue<>();
+        frontier.add(new PathNode(initialPosition, finalPosition), 0);
         ArrayList<Translation2d> visited = new ArrayList<>();
 
         while (!frontier.isEmpty()) {
-            Node currentNode = frontier.remove();
+            PathNode currentNode = frontier.remove();
             if (Math.abs(currentNode.position.getDistance(finalPosition)) < 1) {
                 return currentNode;
             }
 
-            for (Node child : getNeighbors(currentNode, finalPosition)) {
+            for (PathNode child : getNeighbors(currentNode, finalPosition)) {
                 if (!visited.contains(child.position)) {
                     visited.add(child.position);
                     child.parent = currentNode;
@@ -104,10 +122,10 @@ public class PathGenerator {
         return null;
     }
 
-    private ArrayList<Translation2d> buildPath(Node finalNode) {
+    private ArrayList<Translation2d> buildPath(PathNode finalNode) {
         ArrayList<Translation2d> path = new ArrayList<>();
 
-        Node currentNode = finalNode;
+        PathNode currentNode = finalNode;
         while (currentNode.parent != null) {
             path.add(0, currentNode.position);
             currentNode = currentNode.parent;
@@ -120,28 +138,46 @@ public class PathGenerator {
         return (first.getY() - second.getY()) / (first.getX() - second.getX());
     }
 
-    private void prunePath() {
-        if (calculatedLocs.size() < 2) {
+    private void removeDuplicateSlopes() {
+        if (controlPoints.size() < 2) {
             return;
         }
         ArrayList<Translation2d> newPath = new ArrayList<>();
-        double lastSlope = getSlope(initialPose.getTranslation(), calculatedLocs.get(1));
+        double lastSlope = getSlope(initialPosition.getTranslation(), controlPoints.get(1));
 
-        for (int i = 0; i < calculatedLocs.size() - 1; i++) {
-            double currentSlope = getSlope(calculatedLocs.get(i), calculatedLocs.get(i + 1));
+        for (int i = 0; i < controlPoints.size() - 1; i++) {
+            double currentSlope = getSlope(controlPoints.get(i), controlPoints.get(i + 1));
             if (currentSlope != lastSlope) {
-                newPath.add(calculatedLocs.get(i));
+                newPath.add(controlPoints.get(i));
             }
             lastSlope = currentSlope;
         }
 
-        calculatedLocs = newPath;
+        controlPoints = newPath;
+    }
+
+    private void prunePath() {
+        for (int i = controlPoints.size() - 1; i >= 0; i--) {
+            if (!objectBetween(initialPosition.getTranslation(), controlPoints.get(i))) {
+                System.out.println(i + ": " + controlPoints.get(i).getX() + ", " + controlPoints.get(i).getY());
+                controlPoints.subList(0, i).clear();
+                break;
+            }
+        }
+
+        for (int i = 0; i < controlPoints.size(); i++) {
+            if (!objectBetween(finalPosition.getTranslation(), controlPoints.get(i))) {
+                System.out.println(i + ": " + controlPoints.get(i).getX() + ", " + controlPoints.get(i).getY());
+                controlPoints.subList(i + 1, controlPoints.size()).clear();
+                break;
+            }
+        }
     }
 
     public final Translation2d[] getPointList() {
-        ArrayList<Translation2d> points = (ArrayList<Translation2d>) calculatedLocs.clone();
-        points.add(0, initialPose.getTranslation());
-        points.add(lastPose.getTranslation());
+        ArrayList<Translation2d> points = (ArrayList<Translation2d>) controlPoints.clone();
+        points.add(0, initialPosition.getTranslation());
+        points.add(finalPosition.getTranslation());
 
 
         return (Translation2d[]) points.toArray();
@@ -165,6 +201,6 @@ public class PathGenerator {
                 // Apply the voltage constraint
                 .addConstraint(autoVoltageConstraint);
 
-        return TrajectoryGenerator.generateTrajectory(initialPose, calculatedLocs, lastPose, config);
+        return TrajectoryGenerator.generateTrajectory(initialPosition, controlPoints, finalPosition, config);
     }
 }
