@@ -29,18 +29,11 @@ public class PathGenerator {
     private ArrayList<Translation2d> controlPoints;
 
     public PathGenerator(Pose2d initialPose, Pose2d lastPose) {
-        long start = System.currentTimeMillis();
         this.initialPosition = FieldConstants.allianceFlip(initialPose);
         this.finalPosition = FieldConstants.allianceFlip(lastPose);
         this.controlPoints = buildPath(astar(new Translation2d(this.initialPosition.getX(), this.initialPosition.getY()), new Translation2d(this.finalPosition.getX(), this.finalPosition.getY())));
         removeDuplicateSlopes();
         prunePath();
-
-        System.out.println(System.currentTimeMillis() - start);
-
-        for (Translation2d v : this.controlPoints) {
-            System.out.println(v.getX() + ", " + v.getY());
-        }
     }
 
     private static class PathNode {
@@ -68,7 +61,7 @@ public class PathGenerator {
         return false;
     }
 
-    private boolean objectBetween(Translation2d initialPos, Translation2d finalPos) {
+    private boolean obstacleBetween(Translation2d initialPos, Translation2d finalPos) {
         final int steps = 25;
         Translation2d step = new Translation2d((finalPos.getX() - initialPos.getX()) / steps, (finalPos.getY() - initialPos.getY()) / steps);
 
@@ -88,7 +81,7 @@ public class PathGenerator {
         for (int x = -1; x <= 1; x++) {
             for (int y = -1; y <= 1; y++) {
                 if (x == y) continue;
-                Translation2d pos = new Translation2d(node.position.getX() + x, node.position.getY() + y);
+                Translation2d pos = new Translation2d(node.position.getX() + (double) x / 4, node.position.getY() + (double) y / 4);
                 if (!inObstacle(pos)) {
                     PathNode element = new PathNode(pos, finalPosition);
                     neighbors.add(element);
@@ -158,16 +151,14 @@ public class PathGenerator {
 
     private void prunePath() {
         for (int i = controlPoints.size() - 1; i >= 0; i--) {
-            if (!objectBetween(initialPosition.getTranslation(), controlPoints.get(i))) {
-                System.out.println(i + ": " + controlPoints.get(i).getX() + ", " + controlPoints.get(i).getY());
+            if (!obstacleBetween(initialPosition.getTranslation(), controlPoints.get(i))) {
                 controlPoints.subList(0, i).clear();
                 break;
             }
         }
 
         for (int i = 0; i < controlPoints.size(); i++) {
-            if (!objectBetween(finalPosition.getTranslation(), controlPoints.get(i))) {
-                System.out.println(i + ": " + controlPoints.get(i).getX() + ", " + controlPoints.get(i).getY());
+            if (!obstacleBetween(finalPosition.getTranslation(), controlPoints.get(i))) {
                 controlPoints.subList(i + 1, controlPoints.size()).clear();
                 break;
             }
